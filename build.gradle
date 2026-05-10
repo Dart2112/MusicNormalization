@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id "com.gradleup.shadow" version "9.0.0-rc1"
+}
+
+group = 'com.dnablue2112'
+version = '1.0-SNAPSHOT'
+defaultTasks("clean", "shadow")
+
+repositories {
+    mavenCentral()
+}
+
+shadowJar {
+    archiveFileName.set("_MusicNormalization.jar")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+dependencies {
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.21.3')
+    implementation('com.github.kokorin.jaffree:jaffree:2024.08.29')
+    implementation('org.slf4j:slf4j-api:1.7.25')
+    implementation('org.slf4j:slf4j-nop:2.0.17')
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "com.dnablue2112.Main"
+    }
+}
