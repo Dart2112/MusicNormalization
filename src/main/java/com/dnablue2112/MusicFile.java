@@ -8,7 +8,7 @@ import java.io.File;
 public class MusicFile {
 
     private final File file;
-    private final Format format;
+    private Format format;
     private final int bitrate;
     private final float duration;
     private SilenceReport report;
@@ -18,9 +18,18 @@ public class MusicFile {
         //Load our data for initial status
         FFprobeResult result = FFprobe.atPath()
                 .setShowFormat(true)
+                .setShowStreams(true)
                 .setInput(f.toPath())
                 .execute();
-        format = Format.valueOf(result.getFormat().getFormatName());
+        String codec = result.getStreams().getFirst().getCodecName();
+        try {
+            format = Format.valueOf(codec);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Format for " + file.getName() + " is not in our supported list");
+            System.out.println("Format name from FFProbe " + result.getFormat().getFormatName());
+            System.out.println("First Stream Codec " + result.getStreams().getFirst().getCodecName());
+            format = null;
+        }
         bitrate = Math.toIntExact(result.getFormat().getBitRate() / 1000);
         duration = result.getFormat().getDuration();
     }
@@ -50,7 +59,7 @@ public class MusicFile {
     }
 
     public enum Format {
-        mp3, flac, ogg
+        mp3, flac, opus, aac
     }
 
 }

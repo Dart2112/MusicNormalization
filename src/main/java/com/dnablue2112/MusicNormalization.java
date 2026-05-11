@@ -20,8 +20,12 @@ public class MusicNormalization {
         //Load media files as a MusicFile class
         List<MusicFile> media = new ArrayList<>();
         for (File f : editFolder.listFiles()) {
-            if (isMusicFile(f))
-                media.add(new MusicFile(f));
+            if (isMusicFile(f)) {
+                MusicFile mf = new MusicFile(f);
+                //Format is null if it's not a supported format, don't add it if it's not supported
+                if (mf.getFormat() != null)
+                    media.add(mf);
+            }
         }
 
         List<QueueFile> queuedFiles = new ArrayList<>();
@@ -63,8 +67,8 @@ public class MusicNormalization {
 
             //Check format, if lossy, set bitrate to nearest value, otherwise set to mp3 320
             int targetBitrate = 320;
-            //OGG is more efficient so we want to give it a slightly higher current bitrate
-            if (mf.getFormat().equals(MusicFile.Format.ogg)) {
+            //Opus and AAC are more efficient so we want to give it a slightly higher current bitrate
+            if (mf.getFormat().equals(MusicFile.Format.opus) || mf.getFormat().equals(MusicFile.Format.aac)) {
                 targetBitrate = nearestBitrate(Math.round(mf.getBitrate() * 1.25f));
             }
             //MP3 we simply find the nearest
@@ -144,7 +148,7 @@ public class MusicNormalization {
         //Check if the file extension is mp3, opus, or flac
         //This will need to be expanded if there are more formats supported
         String ext = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-        List<String> validExtensions = new ArrayList<>(List.of("mp3", "opus", "flac"));
+        List<String> validExtensions = new ArrayList<>(List.of("mp3", "opus", "flac", "m4a"));
         return validExtensions.contains(ext);
     }
 
