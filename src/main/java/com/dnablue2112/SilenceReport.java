@@ -49,7 +49,7 @@ public class SilenceReport {
                     //This could be end silence, get the end time and check it on the duration of the track
                     String end = line.substring(line.indexOf("silence_end") + 13);
                     end = end.substring(0, end.indexOf(",") - 1);
-                    if (Math.abs(musicFile.getDuration() - Float.parseFloat(end)) <= 0.5) {
+                    if (Math.abs(musicFile.getDuration() - Float.parseFloat(end)) <= 0.2) {
                         //Close enough to the end to be considered end silence
                         endSilence = true;
                         endDuration = calculateDuration(line);
