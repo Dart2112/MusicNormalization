@@ -45,24 +45,22 @@ public class QueueFile {
         File outputFile = new File(inputFile.getParentFile(), filenameWithoutExtension(inputFile) + "_processing.mp3");
         String afArgs = "";
         if (loudNorm) {
-            String loudNormCommand;
-            //Build the loudnorm command and add it to the afArgs
-            loudNormCommand = "loudnorm=I=-12:LRA=10:tp=-1";
+            String volumeFilter = "";
+            //Build the volume command and add it to the afArgs
             if (!loudNormReport.isEmpty()) {
                 try {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode node = mapper.readTree(loudNormReport);
-                    loudNormCommand = "loudnorm=I=-12:LRA=10:tp=-1:measured_i={I}:measured_lra={LRA}:measured_tp={TP}:measured_thresh={TH}";
-                    loudNormCommand = loudNormCommand.replace("{I}", node.get("input_i").asText());
-                    loudNormCommand = loudNormCommand.replace("{LRA}", node.get("input_lra").asText());
-                    loudNormCommand = loudNormCommand.replace("{TP}", node.get("input_tp").asText());
-                    loudNormCommand = loudNormCommand.replace("{TH}", node.get("input_thresh").asText());
+                    double measuredI = node.get("input_i").asDouble();
+                    double targetI = -12;
+                    double gainDb = targetI - measuredI;
+                    volumeFilter = "volume=" + gainDb + "dB";
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
-                    System.out.println("Processing without measured data");
+                    System.out.println("Measured data not loaded, not applying volume filter!");
                 }
             }
-            afArgs += loudNormCommand;
+            afArgs += volumeFilter;
         }
         if (silenceTrim) {
             String silenceTrimCommand = "silenceremove=start_periods=1:start_duration=0:start_threshold=-80dB:" +
@@ -78,6 +76,7 @@ public class QueueFile {
                 .addArguments("-b:a", targetBitrate + "k")
                 .addArguments("-map_metadata", "0")
                 //.setOutputListener(System.out::println)
+                //.addArguments("-v", "info")
                 .addOutput(UrlOutput.toPath(outputFile.toPath()));
         if (!afArgs.isEmpty())
             fFmpeg.addArguments("-af", afArgs);
